@@ -1,44 +1,49 @@
 #include <stdio.h>
 
 int n = 5;
-int p[10] = {3, 3, 2, 5, 1};
-int w[10] = {10, 15, 10, 12, 8};
-int W = 10;
+int weight[10] = {3, 3, 2, 5, 1};   // weights of items
+int profit[10] = {10, 15, 10, 12, 8}; // profits of items
+int W = 10; // maximum bag capacity
 
 int main() {
-    int cur_w, i, maxi;
-    float tot_v = 0.0;
-    int used[10];
+    int current_weight = W, i, max_index;
+    float total_profit = 0.0;
+    int used[10] = {0}; 
 
-    for (i = 0; i < n; ++i)
-        used[i] = 0;
+    while (current_weight > 0) {
+        max_index = -1;
+        for (i = 0; i < n; ++i) {
+            if (!used[i]) {
+                if (max_index == -1 ||
+                    (float)profit[i] / weight[i] > (float)profit[max_index] / weight[max_index])
+                    max_index = i;
+            }
+        }
 
-    cur_w = W;
+        // If all items are used, break the loop
+        if (max_index == -1)
+            break;
 
-    while (cur_w > 0) {
-        maxi = -1;
-        for (i = 0; i < n; ++i)
-            if ((used[i] == 0) &&
-                ((maxi == -1) || ((float)w[i] / p[i] > (float)w[maxi] / p[maxi])))
-                maxi = i;
+        used[max_index] = 1;
+        current_weight -= weight[max_index];
+        total_profit += profit[max_index];
 
-        used[maxi] = 1;
-        cur_w -= p[maxi];
-        tot_v += w[maxi];
+        if (current_weight >= 0) {
+            printf("Added object %d (profit = %d, weight = %d) completely. Space left: %d\n",
+                   max_index + 1, profit[max_index], weight[max_index], current_weight);
+        } else {
+            // Take fraction of the item
+            float fraction = 1.0 + (float)current_weight / weight[max_index];
+            printf("Added %.2f%% (profit = %d, weight = %d) of object %d\n",
+                   fraction * 100,
+                   profit[max_index], weight[max_index], max_index + 1);
 
-        if (cur_w >= 0)
-            printf("Added object %d (%d, %d) completely in the bag. Space left: %d.\n",
-                   maxi + 1, w[maxi], p[maxi], cur_w);
-        else {
-            printf("Added %d%% (%d, %d) of object %d in the bag.\n",
-                   (int)((1 + (float)cur_w / p[maxi]) * 100),
-                   w[maxi], p[maxi], maxi + 1);
-
-            tot_v -= w[maxi];
-            tot_v += (1 + (float)cur_w / p[maxi]) * w[maxi];
+            total_profit -= profit[max_index];
+            total_profit += fraction * profit[max_index];
         }
     }
 
-    printf("Filled the bag with objects worth %.2f.\n", tot_v);
+    printf("Total profit earned = %.2f\n", total_profit);
     return 0;
 }
+
